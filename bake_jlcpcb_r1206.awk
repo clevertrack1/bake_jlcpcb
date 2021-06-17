@@ -3,23 +3,8 @@ BEGIN {
 	FPAT = "([^ ]+)|(\"[^\"]+\")"
 	OFS = " ";
 	ORS="\n"  # windows end of line 
-
-	rotations["\"Capacitor_SMD:CP_Elec_10x10.5\""] = "\"0;0;180\""
-	rotations["\"Diode_SMD:Diode_Bridge_Vishay_DFS\""] = "\"0;0;0\""
-	rotations["\"Package_SO:SO-14_3.9x8.65mm_P1.27mm\""] = "\"0;0;270\""
-	rotations["\"Package_SO:SO-16_5.3x10.2mm_P1.27mm\""] = "\"0;0;270\""
-	rotations["\"Package_SO:SO-4_4.4x3.6mm_P2.54mm\""] = "\"0;0;0\""
-	rotations["\"Package_SO:SOIC-14_3.9x8.7mm_P1.27mm\""] = "\"0;0;270\""		
-	rotations["\"Package_SO:SOIC-16_3.9x9.9mm_P1.27mm\""] = "\"0;0;270\""
-	rotations["\"Package_SO:SOIC-16W_5.3x10.2mm_P1.27mm\""] = "\"0;0;270\""
-	rotations["\"Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm\""] = "\"0;0;270\""	
-	rotations["\"Package_SO:SOIC-28W_7.5x17.9mm_P1.27mm\""] = "\"0;0;270\""
-	rotations["\"Package_SO:SOIC-8_3.9x4.9mm_P1.27mm\""] = "\"0;0;270\""
-	rotations["\"Package_SO:SOIC-8_5.23x5.23mm_P1.27mm\""] = "\"0;0;270\""
-	rotations["\"Package_SO:TSSOP-14_4.4x5mm_P0.65mm\""] = "\"0;0;270\""
-	rotations["\"Package_SO:TSSOP-16_4.4x5mm_P0.65mm\""] = "\"0;0;270\""
-	rotations["\"Package_TO_SOT_SMD:SOT-23\""] = "\"0;0;180\""	
-	rotations["\"Package_TO_SOT_SMD:TO-252-2\""] = "\"0;0;0\""
+	
+	FP_R = "\"Resistor_SMD:R_1206_3216Metric\""
 
 	//LCSC Part numbers
 
@@ -689,50 +674,48 @@ R1206["95.3"] = "C247167"
 R1206["97.6"] = "C247165"
 R1206["97.6K"] = "C247166"
 R1206["976K"] = "C247164"
+
 }
 
 function JLCPCB_output( ) {
-	val = match( value, /[^"]+[^"]/)
-	found = "#error"
-	if (val) {
-		value = toupper(substr(value, RSTART, RLENGTH))
-		val = match( value, /[MKR][0-9]+/)
-		if (val){
-			if (RLENGTH == 1){
-				found = substr(value,1, RSTART-1) substr(value,RSTART,1)
-			} else {
-				found = substr(value,1, RSTART-1) "." substr(value,RSTART+1) substr(value,RSTART,1)
-			}	
-			value = found
+	if (JLCPCB == 0 ) return
+	
+	if ( fp ~ FP_R ){
+		val = match( value, /[^"]+[^"]/)
+		found = "#error"
+		if (val) {
+			value = toupper(substr(value, RSTART, RLENGTH))
+			val = match( value, /[MKR][0-9]+/)
+			if (val){
+				if (RLENGTH == 1){
+					found = substr(value,1, RSTART-1) substr(value,RSTART,1)
+				} else {
+					found = substr(value,1, RSTART-1) "." substr(value,RSTART+1) substr(value,RSTART,1)
+				}	
+				value = found
+			}
+			val = match( value, /R/)
+			if (val){
+				value = substr(value,1, RSTART-1)
+			}
 		}
-		val = match( value, /R/)
-		if (val){
-			value = substr(value,1, RSTART-1)
+		lcsc = value
+		f_field += 1
+		if (value in R0603){
+			lcsc = R0603[value]
 		}
+		print "F " f_field " " lcsc " " orientation " " posx " " posy " " size " "flags " " justify " " style " \"LCSC\"";
+		fp =""
 	}
-	lcsc = value
-	f_field += 1
-	if (value in R1206){
-		lcsc = R1206[value]
-	}
-	print "F " f_field " " lcsc " " orientation " " posx " " posy " " size " "flags " " justify " " style " \"LCSC\"";
+	JLCPCB = 0
 }
 
-#output field rotation
-function RotationOutput( ){
-		if ( fp ~ /Resistor/ ) JLCPCB_output()
-		if (fp in rotations) {
-			f_field += 1
-			print "F " f_field " " rotations[fp] " " orientation " " posx " " posy " " size " "flags " " justify " " style " \"JLCPCB_CORRECTION\"";
-		}
-		fp = ""
-}	
-	
+
 $1 ~ /\$Comp/    { Component = 1; print $0 ; next; }
 
 $1 ~ /\$EndComp/  { 
 		# add a field
-		RotationOutput()
+		JLCPCB_output()
 		Component = 0
 		print $0;
 		next;		
@@ -745,8 +728,11 @@ $1 ~ /\$EndComp/  {
 	}
 
 $1 ~ /L/ {
+		add_lcsc = 0
+		device = $2
         # name reference 
 		# ($2 ~ /Device:C/)  match capacitor
+		# ($2 ~ /Device:R/) match R
     }
 		
 $1 ~ /U/ {
@@ -760,41 +746,36 @@ $1 ~ /P/ {
     }
 
 $1 ~ /F/ {
+		JLCPCB = 1;
 		f_field = $2
         if ($2 ~ /0/) { ref   = $3; } # reference, orientation, posx, posy, size, flags, hor_justify, style, <“field_name”>
         if ($2 ~ /1/) { value = $3; } # value, orientation, posx, posy, size, flags, hor_justify, style
-        if ($2 ~ /2/) { fp    = $3; } # footprint, orientation, posx, posy, size, flags, hor_justify, style
-        if ($2 ~ /3/) {  # datasheet, orientation, posx, posy, size, flags, hor_justify, style
+        if ($2 ~ /2/) { # footprint, orientation, posx, posy, size, flags, hor_justify, style
+			fp    = $3; 
+			if (device ~ /Device:R/){ 
+				if ( fp ~ "\"\""){
+					fp = FP_R; 
+					$3 = FP_R 
+					$0 = $0
+				}
+				add_lcsc = 1
+			}
+		} 
+ 
+		if ($2 ~ /3/) {  # datasheet, orientation, posx, posy, size, flags, hor_justify, style
 			orientation = $4; size = $7; flags = $8 ; justify = $9 ; style = $10
 		}
-		# value, orientation, posx, posy, size, flags, hor_justify, style, field_name
-		if ( $11 ~ /JLCPCB_CORRECTION/){	
-			if (! fp in rotations){ 
-				found_rotation = 1;
-				rotations[fp] = $3
-				new_rotations[fp] = $3
-			}
-			fp = ""	# set fp so no extra correction occurs
+		if ( $11 ~ /LCSC/){	
+			add_lcsc = 0
 		}
     }
 	
 $1 !~ /F/	{
 		if ( f_field != 0) {
-			RotationOutput()
+			JLCPCB_output( )
 		}
 	}
 
 	{ print $0; 
 	 next;
 	}
-	
-END {
-# output all the rotations
-	if (found_rotation){
-		print "NEW FOOTPRINT ROTATIONS FOUND" > "/dev/stderr"
-		n = asorti(new_rotations, neat)
-		for (k = 1; k<=n ; k++){
-			print "rotations[" neat[k] "] = " new_rotations[neat[k]] > "/dev/stderr"
-		}
-	}
-}
