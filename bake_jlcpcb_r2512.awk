@@ -129,8 +129,12 @@ R2512["91"] = "C36686"
 
 }
 
+# This is where we output extra fields needed to support JLCPCB
+
 function JLCPCB_output( ) {
 	if (JLCPCB == 0 ) return
+	
+	# If the footprint matches our target look for the part number
 	
 	if ( fp ~ FP_R ){
 		val = match( value, /[^"]+[^"]/)
@@ -161,23 +165,26 @@ function JLCPCB_output( ) {
 	JLCPCB = 0
 }
 
-
+		# Look for a component
 $1 ~ /\$Comp/    { Component = 1; print $0 ; next; }
 
+		# component block has finished
 $1 ~ /\$EndComp/  { 
-		# add a field
+		# add jlcpcb field
 		JLCPCB_output()
 		Component = 0
 		print $0;
 		next;		
 	}
 
+	# just print out anything not inside a component block
     { if (Component != 1 ){
 		print $0 ; 
 		next; 
 		}
 	}
 
+	# first field indicates type of data on line
 $1 ~ /L/ {
 		add_lcsc = 0
 		device = $2
@@ -197,6 +204,7 @@ $1 ~ /P/ {
     }
 
 $1 ~ /F/ {
+			# field each field has a number 0-3 are standard 4+ are user defined
 		JLCPCB = 1;
 		f_field = $2
         if ($2 ~ /0/) { ref   = $3; } # reference, orientation, posx, posy, size, flags, hor_justify, style, <“field_name”>
@@ -221,12 +229,14 @@ $1 ~ /F/ {
 		}
     }
 	
+		# a block of fields can end before the component end catch it here
 $1 !~ /F/	{
 		if ( f_field != 0) {
 			JLCPCB_output( )
 		}
 	}
 
+		# print it out
 	{ print $0; 
 	 next;
 	}
