@@ -777,12 +777,12 @@ function JLCPCB_output( ) {
 				value = substr(value,1, RSTART-1)
 			}
 		}
-		lcsc = value
+		lcsc = value 
 		f_field += 1
 		if (value in R0805){
 			lcsc = R0805[value]
-		}
-		print "F " f_field " " lcsc " " orientation " " posx " " posy " " size " "flags " " justify " " style " \"LCSC\"";
+		}	
+		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size "  "flags " " justify " " style " \"LCSC\"";
 		fp =""
 	}
 	JLCPCB = 0
