@@ -582,7 +582,7 @@ function JLCPCB_output( ) {
 		if (value in R0402){
 			lcsc = R0402[value]
 		}	
-		print "F " f_field " " lcsc " " orientation " " posx " " posy " " size " "flags " " justify " " style " \"LCSC\"";
+		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size " "flags " " justify " " style " \"LCSC\"";
 		fp =""
 	}
 	JLCPCB = 0
@@ -626,9 +626,16 @@ $1 ~ /P/ {
 $1 ~ /F/ {
 		JLCPCB = 1;
 		f_field = $2
-        if ($2 ~ /0/) { ref   = $3; } # reference, orientation, posx, posy, size, flags, hor_justify, style, <“field_name”>
-        if ($2 ~ /1/) { value = $3; } # value, orientation, posx, posy, size, flags, hor_justify, style
-        if ($2 ~ /2/) { # footprint, orientation, posx, posy, size, flags, hor_justify, style
+        if ($2 ~ /0/) { 
+			# reference, orientation, posx, posy, size, flags, hor_justify, style, <“field_name”>
+			ref = $3; orientation = $4; size = $7; flags = $8 ; justify = $9 ; style = $10
+		}			
+		if ($2 ~ /1/) { 
+			# value, orientation, posx, posy, size, flags, hor_justify, style
+			value = $3
+		}
+        if ($2 ~ /2/) { 
+			# footprint, orientation, posx, posy, size, flags, hor_justify, style
 			fp    = $3; 
 			if (device ~ /Device:R/){ 
 				if ( fp ~ "\"\""){
@@ -639,13 +646,12 @@ $1 ~ /F/ {
 				add_lcsc = 1
 			}
 		} 
- 
-		if ($2 ~ /3/) {  # datasheet, orientation, posx, posy, size, flags, hor_justify, style
-			orientation = $4; size = $7; flags = $8 ; justify = $9 ; style = $10
+		if ($2 ~ /3/) {  
+			# datasheet, orientation, posx, posy, size, flags, hor_justify, style
 		}
 		if ( $11 ~ /LCSC/){	
 			add_lcsc = 0
-		}			
+		}
     }
 	
 $1 !~ /F/	{

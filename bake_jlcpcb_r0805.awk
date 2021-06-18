@@ -846,7 +846,6 @@ $1 ~ /F/ {
 				add_lcsc = 1
 			}
 		} 
- 
 		if ($2 ~ /3/) {  
 			# datasheet, orientation, posx, posy, size, flags, hor_justify, style
 		}
