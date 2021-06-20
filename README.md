@@ -1,6 +1,9 @@
 # bake_jlcpcb
 
-Awk Scripts to add JLCPCB fields to Kicad schematics for automation using KiKit.
+Dont waste time selecting component footprints and then finding the JLCPCB part numbers. These scripts do it all.
+My goal is to have a feature in Kicad like Annotate that does all the neccessary junk to get an assembled pcb from JLCPCB.
+
+This project is a set of Awk Scripts to add JLCPCB fields to Kicad schematics for automation using KiKit.
 
 Here are awk scripts for basic smd resistors, choose the script based on the smd size you are using.
 
