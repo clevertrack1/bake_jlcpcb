@@ -208,7 +208,7 @@ function JLCPCB_output( ) {
 		if (value in R2010){
 			lcsc = R2010[value]
 		}
-		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size " "flags " " justify " " style " \"LCSC\"";
+		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size " 0001 " justify " " style " \"LCSC\"";
 		fp =""
 	}
 	add_lcsc = 0

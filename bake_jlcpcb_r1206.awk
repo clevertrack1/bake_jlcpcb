@@ -710,7 +710,7 @@ function JLCPCB_output( ) {
 		if (value in R1206){
 			lcsc = R1206[value]
 		}
-		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size " "flags " " justify " " style " \"LCSC\"";
+		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size " 0001 " justify " " style " \"LCSC\"";
 		fp =""
 	}
 	add_lcsc = 0
