@@ -16,16 +16,18 @@ R0805["0.018"] = "C247597"
 R0805["0.02"] = "C32681"
 R0805["0.022"] = "C247595"
 R0805["0.025"] = "C270868"
+R0805["0.027"] = "C158161"
 R0805["0.03"] = "C247605"
 R0805["0.033"] = "C127689"
 R0805["0.034"] = "C270855"
 R0805["0.036"] = "C247592"
 R0805["0.039"] = "C270865"
+R0805["0.04"] = "C270864"
 R0805["0.047"] = "C247603"
-R0805["0.05"] = "C127697"
+R0805["0.05"] = "C42380"
 R0805["0.056"] = "C127709"
 R0805["0.062"] = "C247601"
-R0805["0.068"] = "C270912"
+R0805["0.068"] = "C247600"
 R0805["0.075"] = "C247586"
 R0805["0.082"] = "C247599"
 R0805["0.1"] = "C22424"
@@ -771,7 +773,7 @@ function JLCPCB_output( ) {
 		val = match( value, /[^"]+[^"]/)
 		found = "#error"
 		if (val) {
-			value = substr(value, RSTART, RLENGTH)
+			value = substr(value, RSTART, RLENGTH)		
 			val = match( value, /[MkKR][0-9]+/)
 			if (val){
 				if (RLENGTH == 1){
@@ -790,12 +792,12 @@ function JLCPCB_output( ) {
 				value = tolower(value)
 			}
 		}
-		lcsc = value 
+		lcsc = value
 		f_field += 1
 		if (value in R0805){
 			lcsc = R0805[value]
 		}	
-		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size "  "flags " " justify " " style " \"LCSC\"";
+		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size " 0001 " justify " " style " \"LCSC\"";
 		fp =""
 	}
 	add_lcsc = 0
