@@ -704,33 +704,38 @@ R0603["976k"] = "C48922"
 
 }
 
+function r_value_index( instring ) {
+	val = match( instring, /[^"]+[^"]/)
+	found = "#error"
+	if (val) {
+		instring = substr(instring, RSTART, RLENGTH)
+		val = match( instring, /[MkKR][0-9]+/)
+		if (val){
+			if (RLENGTH == 1){
+				found = substr(instring,1, RSTART-1) substr(instring,RSTART,1)
+			} else {
+				found = substr(instring,1, RSTART-1) "." substr(instring,RSTART+1) substr(instring,RSTART,1)
+			}	
+			instring = found
+		}
+		val = match( instring, /R/)
+		if (val){
+			instring = substr(instring,1, RSTART-1)
+		}
+		val = match( instring, /K/)
+		if (val){
+			instring = tolower(instring)
+		}
+	}
+	return instring
+}
+
 function JLCPCB_output( ) {
-	if (add_lcsc == 0 ) return
+	if (add_lcsc ) {
 	
 	if ( fp ~ FP_R ){
-		val = match( value, /[^"]+[^"]/)
-		found = "#error"
-		if (val) {
-			value = substr(value, RSTART, RLENGTH)
-			val = match( value, /[MkKR][0-9]+/)
-			if (val){
-				if (RLENGTH == 1){
-					found = substr(value,1, RSTART-1) substr(value,RSTART,1)
-				} else {
-					found = substr(value,1, RSTART-1) "." substr(value,RSTART+1) substr(value,RSTART,1)
-				}	
-				value = found
-			}
-			val = match( value, /R/)
-			if (val){
-				value = substr(value,1, RSTART-1)
-			}
-			val = match( value, /K/)
-			if (val){
-				value = tolower(value)
-			}
-		}
-		lcsc = value
+			value = r_value_index(value)
+			lcsc = ""
 		f_field += 1
 		if (value in R0603){
 			lcsc = R0603[value]
@@ -739,8 +744,17 @@ function JLCPCB_output( ) {
 		fp =""
 	}
 	add_lcsc = 0
+	}
+	ERROR_output()
 }
 
+function ERROR_output( ) {
+	if (add_error ){
+		f_field += 1	
+		print "F " f_field " \"" error_msg "\" " orientation " " posx " " posy " " size "  0000 " justify " " style " \"ERROR\"";
+		add_error = 0
+	}
+}
 
 $1 ~ /\$Comp/    { Component = 1; print $0 ; next; }
 
@@ -802,14 +816,21 @@ $1 ~ /F/ {
 			# datasheet, orientation, posx, posy, size, flags, hor_justify, style
 		}
 		if ( $11 ~ /LCSC/){	
+			if ( fp ~ FP_R ){
+				rindex = r_value_index(value)
+				if (rindex in R0603){
+					if ($3 !~ R0603[rindex] ){
+						add_error = 1
+						error_msg =  "expected " R0603[rindex]
+					}				
+				}
+			}				
 			add_lcsc = 0
 		}
     }
 	
 $1 !~ /F/	{
-		if ( add_lcsc != 0) {
 			JLCPCB_output( )
-		}
 	}
 
 	{ print $0; 
