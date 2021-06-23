@@ -766,14 +766,42 @@ R0805["9k"] = "C247026"
 
 }
 
+function r_value_index( instring ) {
+	val = match( instring, /[^"]+[^"]/)
+	found = "#error"
+	if (val) {
+		instring = substr(instring, RSTART, RLENGTH)
+		val = match( instring, /[MkKR][0-9]+/)
+		if (val){
+			if (RLENGTH == 1){
+				found = substr(instring,1, RSTART-1) substr(instring,RSTART,1)
+			} else {
+				found = substr(instring,1, RSTART-1) "." substr(instring,RSTART+1) substr(instring,RSTART,1)
+			}	
+			instring = found
+		}
+		val = match( instring, /R/)
+		if (val){
+			instring = substr(instring,1, RSTART-1)
+		}
+		val = match( instring, /K/)
+		if (val){
+			instring = tolower(instring)
+		}
+	}
+	return instring
+}
+
 function JLCPCB_output( ) {
 	if (add_lcsc == 0 ) return
 	
 	if ( fp ~ FP_R ){
+		check = r_value_index(value)
+		
 		val = match( value, /[^"]+[^"]/)
 		found = "#error"
 		if (val) {
-			value = substr(value, RSTART, RLENGTH)		
+			value = substr(value, RSTART, RLENGTH)
 			val = match( value, /[MkKR][0-9]+/)
 			if (val){
 				if (RLENGTH == 1){
@@ -792,12 +820,13 @@ function JLCPCB_output( ) {
 				value = tolower(value)
 			}
 		}
-		lcsc = value
+		lcsc = value 
+		if (check ~= lcsc) print "ERROR " lcsc " "check
 		f_field += 1
 		if (value in R0805){
 			lcsc = R0805[value]
 		}	
-		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size " 0001 " justify " " style " \"LCSC\"";
+		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size "  0001 " justify " " style " \"LCSC\"";
 		fp =""
 	}
 	add_lcsc = 0
