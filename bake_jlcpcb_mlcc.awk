@@ -373,17 +373,17 @@ function r_value_index( instring ) {
 function JLCPCB_output( ) {
 	if (add_lcsc ) {
 		
-	  if ( fp ~ FP_C ){
-		value = r_value_index(value)
+		if ( fp ~ FP_C ){
+			value = r_value_index(value)
 
-		f_field += 1
-		if (value in C0805){
-			lcsc = C0805[value]
-		}	
-		print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size "  0001 " justify " " style " \"LCSC\"";
-		fp =""
-	  }
-	  add_lcsc = 0
+			f_field += 1
+			if (value in C0805){
+				lcsc = C0805[value]
+			}
+			print "F " f_field " \"" lcsc "\" " orientation " " posx " " posy " " size "  0001 " justify " " style " \"LCSC\"";
+			fp =""
+		}
+		add_lcsc = 0
 	}
 	ERROR_output()
 }
@@ -472,9 +472,7 @@ $1 ~ /F/ {
     }
 	
 $1 !~ /F/	{
-		if ( add_lcsc != 0) {
-			JLCPCB_output( )
-		}
+		JLCPCB_output( )
 	}
 
 	{ print $0; 
